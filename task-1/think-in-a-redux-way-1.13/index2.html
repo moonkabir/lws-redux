@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>LWS Assignment 1 - Scoreboard</title>
+    <link rel="icon" type="image/x-icon" href="./image/favicon.png" />
+    <link rel="stylesheet" href="./style.css" />
+  </head>
+
+  <body>
+    <section class="section">
+      <!-- header -->
+      <header class="header">
+        <div class="container">
+          <div class="header-wrapper">
+            <img src="./image/lws-logo 1.svg" alt="logo" class="logo" />
+            <h1 class="name">Scoreboard</h1>
+            <h5 class="total">Total</h5>
+          </div>
+        </div>
+      </header>
+      <!-- matches  -->
+      <div id="allMatches" class="all-matches container"></div>
+      <!-- for adding another matches -->
+      <div class="add_match">
+        <button id="addMatch" class="btn lws-addMatch">
+          Add Another Match
+        </button>
+        <button id="resetButton" class="lws-reset">
+          <svg
+            fill="none"
+            width="24"
+            height="24"
+            stroke="currentColor"
+            stroke-width="2"
+            viewBox="0 0 24 24"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+          >
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+            ></path>
+          </svg>
+          <span>Reset</span>
+        </button>
+      </div>
+    </section>
+
+    <script src="https://unpkg.com/redux@4.1.1/dist/redux.min.js"></script>
+    <script>
+      const { createStore } = Redux;
+
+      // store init
+      const initialState = [
+        {
+          increament: "",
+          decreament: "",
+        },
+      ];
+
+      //  reducer function to handle actions
+      function inputReducer(state = initialState, action) {
+        switch (action.type) {
+          case "ADD_MATCH":
+            return [...state, { increament: "", decreament: "" }];
+          case "REMOVE_SINGLE_MATCH":
+            return state.filter((input, index) => index !== action.payload);
+          case "UPDATE_INCREAMENT":
+            return state.map((input, index) => {
+              if (index === action.payload.index) {
+                return { ...input, increament: action.payload.increament };
+              }
+              return input;
+            });
+          case "UPDATE_DCREAMENT":
+            return state.map((input, index) => {
+              if (index === action.payload.index) {
+                return { ...input, decreament: action.payload.decreament };
+              }
+              return input;
+            });
+          case "RESET_ALL":
+            return state.map((input) => ({
+              ...input,
+              increament: "",
+              decreament: "",
+            }));
+          default:
+            return state;
+        }
+      }
+
+      const store = createStore(inputReducer);
+
+      // function to render inputs
+      function renderInputs() {
+        const inputsContainer = document.getElementById("allMatches");
+        inputsContainer.innerHTML = "";
+        const inputs = store.getState();
+        inputs.forEach((input, index) => {
+          const inputDiv = document.createElement("div");
+          inputDiv.innerHTML = `<div class="match">
+          <div class="wrapper">
+            <button onclick="removeInput(${index})" class="lws-delete">
+              <img src="./image/delete.svg" alt="" />
+            </button>
+            <h3 class="lws-matchName">Match ${index + 1}</h3>
+          </div>
+          <div class="inc-dec">
+            <form class="incrementForm" onsubmit="return false">
+              <h4>Increment</h4>
+              <input
+                value="${input.increament}"
+                type="number"
+                name="increment"
+                class="lws-increment"
+                onchange="updateIncreament(${index}, this.value)"
+              />
+            </form>
+            <form class="decrementForm" onsubmit="return false">
+              <h4>Decrement</h4>
+              <input
+              value="${input.decreament}"
+                type="number"
+                name="decrement"
+                class="lws-decrement"
+                onchange="updateDecreament(${index}, this.value)"
+              />
+            </form>
+          </div>
+          <div class="numbers">
+            <h2 id="singleResult1" class="lws-singleResult">${
+              Number(input.increament) - Number(input.decreament)
+            }</h2>
+          </div>
+        </div>`;
+          inputsContainer.appendChild(inputDiv);
+        });
+      }
+
+      function resetAll() {
+        return { type: "RESET_ALL" };
+      }
+      function updateIncreament(index, increament) {
+        store.dispatch({
+          type: "UPDATE_INCREAMENT",
+          payload: { index, increament },
+        });
+      }
+      function updateDecreament(index, decreament) {
+        store.dispatch({
+          type: "UPDATE_DCREAMENT",
+          payload: { index, decreament },
+        });
+      }
+
+      function removeInput(index) {
+        store.dispatch({
+          type: "REMOVE_SINGLE_MATCH",
+          payload: index,
+        });
+      }
+
+      renderInputs();
+
+      store.subscribe(renderInputs);
+
+      document.getElementById("addMatch").addEventListener("click", () => {
+        store.dispatch({
+          type: "ADD_MATCH",
+        });
+      });
+
+      document.getElementById("resetButton").addEventListener("click", () => {
+        store.dispatch(resetAll());
+      });
+    </script>
+  </body>
+</html>
